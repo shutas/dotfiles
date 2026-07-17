@@ -1,3 +1,52 @@
-cp ~/.bash_profile ~/Desktop/GitHub/Configuration-Files/.bash_profile
-cp ~/.vimrc ~/Desktop/GitHub/Configuration-Files/.vimrc
-cp ~/.zshrc ~/Desktop/GitHub/Configuration-Files/.zshrc
+#!/usr/bin/env bash
+#
+# update — deploy the dotfiles in this repo into $HOME as symlinks.
+#
+# Symlinking (rather than copying) means future `git pull`s in this repo
+# take effect immediately, with no need to re-run this script.
+#
+# Any existing real file is backed up to <name>.backup.<timestamp> before
+# it is replaced, so nothing is silently lost. Existing symlinks that
+# already point at this repo are left untouched.
+
+set -euo pipefail
+
+# Absolute path to this repo, regardless of where the script is invoked from.
+REPO="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
+# Config files to deploy (repo path -> $HOME/<same name>).
+FILES=(
+  .bash_profile
+  .vimrc
+  .zshrc
+)
+
+timestamp="$(date +%Y%m%d-%H%M%S)"
+
+for name in "${FILES[@]}"; do
+  src="$REPO/$name"
+  dest="$HOME/$name"
+
+  if [ ! -e "$src" ]; then
+    echo "skip:   $name (not in repo)"
+    continue
+  fi
+
+  # Already linked to this repo — nothing to do.
+  if [ -L "$dest" ] && [ "$(readlink "$dest")" = "$src" ]; then
+    echo "ok:     $name (already linked)"
+    continue
+  fi
+
+  # Back up an existing real file or a symlink pointing elsewhere.
+  if [ -e "$dest" ] || [ -L "$dest" ]; then
+    backup="$dest.backup.$timestamp"
+    mv "$dest" "$backup"
+    echo "backup: $name -> $(basename "$backup")"
+  fi
+
+  ln -s "$src" "$dest"
+  echo "link:   $name -> $src"
+done
+
+echo "Done."
