@@ -73,8 +73,9 @@ if (has("termguicolors"))
 endif
 colorscheme one
 
-" Use the terminal's own background instead of the theme's gray.
+" Use the terminal's own background instead of the theme's gray,
+" and brighten the default text (vim-one's default fg is a dim #abb2bf).
 " Must come AFTER colorscheme, or the theme overrides it.
-highlight Normal      ctermbg=NONE guibg=NONE
+highlight Normal      ctermbg=NONE guibg=NONE ctermfg=231 guifg=#ffffff
 highlight NonText     ctermbg=NONE guibg=NONE
 highlight EndOfBuffer ctermbg=NONE guibg=NONE
